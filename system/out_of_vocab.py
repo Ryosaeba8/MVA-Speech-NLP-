@@ -10,25 +10,24 @@ class OOV_module():
         
         self.corpus = corpus
         self.load_embeddings(path_embeddings)
-        _, words_inds, lexicons_inds = np.intersect1d(self.words, 
+        _, words_inds, lexicons_inds = np.intersect1d(self.words_all, 
                                                       list(lexicons), 
                                                       return_indices=True)
-        self.words_emb, self.embeddings = np.array(self.words)[words_inds], self.embeddings[words_inds]
+        self.words_emb, self.embeddings = np.array(self.words_all)[words_inds], self.embeddings_all[words_inds]
         self.words = list(lexicons)
-        self.word2id = {word: idx for idx, word in enumerate(self.words_emb)}
-        self.id2word = {idx: word for idx, word in enumerate(self.words_emb)}
+        self.word2id = {word: idx for idx, word in enumerate(self.words_all)}
         
     def load_embeddings(self, path):
         
         f = open(Path(path), 'rb')
         u = pickle._Unpickler(f)
         u.encoding = 'latin1' 
-        self.words, self.embeddings = u.load()
+        self.words_all, self.embeddings_all = u.load()
         f.close()
         
     def encode(self, word):
         ind_word = self.word2id[word] ## finding the index of the word
-        return self.embeddings[ind_word]
+        return self.embeddings_all[ind_word]
     
     def levenshtein_distance(self, v, w):
         ## v and w are two words
@@ -57,12 +56,12 @@ class OOV_module():
 
     def most_similar(self, word, k):
         # Returns the k most similar words
-        if word not in self.words_emb :
+        if word not in self.words_all :
             return []
         w1 = self.encode(word)
         sim = self.score(w1, self.embeddings)
         inds = np.argsort(sim)[::-1][:k]
-        words = [self.words[i] for i in inds] 
+        words = [self.words_emb[i] for i in inds] 
         return words
     
     def get_closest_word(self, word, nb_consider = 15) :
@@ -112,8 +111,8 @@ class OOV_module():
         all_words = self.words
         all_words = self.words + ['SOS', 'EOS']
         self.bigrams = {'OOV' : {}}
-        self.frequencies = {'OOV' :1}
-        self.unigrams = {'OOV' : 1}
+        self.frequencies = {'OOV' :0}
+        self.unigrams = {'OOV' : 0}
         for line in self.corpus:
             arr = ['SOS'] + [w.lower() for w in line.split()] + ['EOS']  
             for i in range(len(arr)-1):  ## for each (word_1, word_2) in the 
@@ -152,7 +151,7 @@ class OOV_module():
                             next_word = 'OOV'
                         score = best_scores[i][prev_word] -\
                                 np.log(self.unigrams[next_word]*\
-                                       self.bigrams[prev_word].get(next_word, 1/self.frequencies[prev_word]))
+                                       self.bigrams[prev_word].get(next_word, 0.0))
                         if (next_word not in best_scores[i+1].keys()) or\
                                             (best_scores[i+1][next_word] > score) : ## updating the log probalities
                             best_scores[i+1][next_word] = score
@@ -161,7 +160,7 @@ class OOV_module():
                             my_best[next_word] = score
                 else : ## dealing with the end of sentence token
                     next_word = 'EOS'
-                    score = best_scores[i][prev_word] - np.log(self.bigrams[prev_word].get(next_word, 1/self.frequencies[prev_word]))
+                    score = best_scores[i][prev_word] - np.log(self.bigrams[prev_word].get(next_word, 0.0))
                     if (next_word not in best_scores[i+1].keys()) or\
                                         (best_scores[i+1][next_word] > score) :
                         best_scores[i+1][next_word] = score

@@ -22,11 +22,11 @@ def write_file(file_to_write, corpus_test,
     print('The prediction on the test will be written here : ', path_output)
     with open(path_output, 'w' ,encoding ='utf-8') as file :
         for (i, text) in enumerate(file_to_write) : 
-            file.write('\n' + text)
+            file.write(text+'\n')
     print('The corresponding ground sentences will be written :', path_for_sentence)
     with open(path_for_sentence, 'w' ,encoding ='utf-8') as file :
         for (i, text) in enumerate(corpus_test) : 
-            file.write('\n' + text)
+            file.write(text +'\n')
 
 
 def compute_precision(prediction_train, 

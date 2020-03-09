@@ -17,8 +17,7 @@ p = argparse.ArgumentParser( description='Basic run script for the Parser' )
 p.add_argument('--mode',  type=str, default= 'test')
 args = p.parse_args()
 mode = args.mode #mode = 'eval' pour l'évaluation avec de nouvelles phrases
-def evaluation(grammars_test, grammars_train,
-			   pcky, corpus, mode) :
+def evaluation(grammars_test, pcky,  mode) :
 
 	if mode == 'test' :
 		print("...........Début de l'évaluation........")
@@ -61,5 +60,4 @@ if __name__ == '__main__' :
 				dico_cfg=dico_cfg, axiomes=axiomes, 
 				lexicons=lexicons)
 
-	evaluation(grammars_test, grammars_train,
-			   pcky, corpus, mode)
+	evaluation(grammars_test, pcky, mode)
